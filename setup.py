@@ -39,7 +39,6 @@ document.getElementsByTagName('head')[0].appendChild(jq);
 ]
 
 '''
-import os
 import sys
 import platform
 import setuptools
@@ -65,25 +64,27 @@ VERSIONS = {
 }
 NO_M = ['38']
 
+MAC_VERSION = 10, 4
+
 def get_tflite_url(version='2.1.0.post1'):
     system = platform.system()
+    platfm = PLATFORMS.get(system)
+    arch = platform.uname().machine
     py_version = '{}{}'.format(*sys.version_info)
 
     if system == 'Linux':
-        is_64 = sys.maxsize > 2**32
-        is_arm = platform.uname().machine.startswith("arm")
-        arch = ('aarch64' if is_64 else 'armv7l') if is_arm else 'x86_64'
+        pass
     elif system == 'Darwin':
-        arch = '10_14_x86_64'
+        platfm += '_' + '_'.join(map(str, MAC_VERSION))
     elif system == 'Windows':
-        arch = 'amd64'
+        pass
     else:
         raise ValueError('Unknown system: {}'.format(system))
 
     return URL.format(
         version=version, py=py_version,
         pym=py_version if py_version in NO_M else py_version + 'm',
-        platform=PLATFORMS.get(system),
+        platform=platfm,
         arch=arch,
     )
 

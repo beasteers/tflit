@@ -8,71 +8,28 @@ cache:
   directories:
     - $HOME/Library/Caches/pip
 
-# python:
-#   - "3.5"
-#   - "3.6"      # current default Python on Travis CI
-#   - "3.7"
-#   - "3.8"
-#
-# os:
-#   - windows
-#   - linux
-#   - osx
-
-
-# matrix:
-#   include:
-#     - os: linux
-#       sudo: required
-#       dist: xenial
-#
-#     - os: linux
-#       sudo: required
-#       dist: xenial
-#
-#     - os: linux
-#       sudo: required
-#       dist: xenial
-#
-#     - os: linux
-#       sudo: required
-#       dist: xenial
-#
-#     - os: osx
-#       osx_image: xcode10
-#       language: generic
-#       env: PYTHON=36
-
 matrix:
   include:
     - python: 3.5
       os: linux
-      dist: bionic
     - python: 3.6
       os: linux
-      dist: bionic
     - python: 3.7
       os: linux
-      dist: bionic
     - python: 3.8
       os: linux
-      dist: bionic
 
     - python: 3.5
       os: linux
-      dist: bionic
       arch: arm64
     - python: 3.6
       os: linux
-      dist: bionic
       arch: arm64
     - python: 3.7
       os: linux
-      dist: bionic
       arch: arm64
     - python: 3.8
       os: linux
-      dist: bionic
       arch: arm64
 
     - name: "Python: 3.5"
@@ -109,16 +66,16 @@ matrix:
 
 
 install:
-  - python3 --version
-  - python3 -m pip install --upgrade pip
-  - python3 -m pip install -e .[tests]
+  - python --version
+  - python -m pip install --upgrade pip
+  - python -m pip install -e .[tests]
 
 script:
-  - python3 -m pytest
+  - python -m pytest --cov --cov-report term-missing
 
 after_success:
-  - python3 -m coveralls
-  - python3 -m pip uninstall -y tflit
+  - python -m coveralls
+  - python -m pip uninstall -y tflit
 
 after_failure:
-  - python3 -m pip uninstall -y tflit
+  - python -m pip uninstall -y tflit
