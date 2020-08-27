@@ -71,9 +71,11 @@ def get_tflite_url(version='2.1.0.post1'):
 
     if system == 'Linux':
         is_64 = sys.maxsize > 2**32
-        is_arm = os.uname()[4].startsWith("arm")
+        is_arm = platform.uname().machine.startswith("arm")
         arch = ('aarch64' if is_64 else 'armv7l') if is_arm else 'x86_64'
     elif system == 'Darwin':
+        if py_version == '38':
+            py_version = '37'  # ??
         arch = '10_14_x86_64'
     elif system == 'Windows':
         arch = 'amd64'
@@ -91,7 +93,7 @@ def get_tflite_url(version='2.1.0.post1'):
 setuptools.setup(
     name=NAME,
     version='0.0.1',
-    description='',
+    description='tflite_runtime, but easier.',
     long_description=open('README.md').read().strip(),
     long_description_content_type='text/markdown',
     author='Bea Steers',
@@ -101,7 +103,10 @@ setuptools.setup(
     # entry_points={'console_scripts': ['{name}={name}:main'.format(name=NAME)]},
     install_requires=[
         'numpy',
-        f'tflite_runtime@{get_tflite_url()}'
+        'tflite_runtime@{}'.format(get_tflite_url())
     ],
+    extras_require={
+        'tests': ['pytest', 'pytest-cov', 'codecov'],
+    },
     license='MIT License',
-    keywords='')
+    keywords='tflite runtime tensorflow keras deep machine learning model edge embedded compute cnn')
