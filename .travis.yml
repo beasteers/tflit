@@ -1,15 +1,23 @@
 language: python
 
-python:
-  - "3.5"
-  - "3.6"      # current default Python on Travis CI
-  - "3.7"
-  - "3.8"
+notifications:
+  email: false
 
-os:
-  - windows
-  - linux
-  - osx
+cache:
+  apt: True
+  directories:
+    - $HOME/Library/Caches/pip
+
+# python:
+#   - "3.5"
+#   - "3.6"      # current default Python on Travis CI
+#   - "3.7"
+#   - "3.8"
+#
+# os:
+#   - windows
+#   - linux
+#   - osx
 
 
 # matrix:
@@ -35,9 +43,78 @@ os:
 #       language: generic
 #       env: PYTHON=36
 
+matrix:
+  include:
+    - python: 3.5
+      os: linux
+      dist: bionic
+    - python: 3.6
+      os: linux
+      dist: bionic
+    - python: 3.7
+      os: linux
+      dist: bionic
+    - python: 3.8
+      os: linux
+      dist: bionic
+
+    - python: 3.5
+      os: linux
+      dist: bionic
+      arch: arm64
+    - python: 3.6
+      os: linux
+      dist: bionic
+      arch: arm64
+    - python: 3.7
+      os: linux
+      dist: bionic
+      arch: arm64
+    - python: 3.8
+      os: linux
+      dist: bionic
+      arch: arm64
+
+    - name: "Python: 3.5"
+      os: osx
+      language: shell
+      python: 3.5
+    - name: "Python: 3.6"
+      os: osx
+      language: shell
+      python: 3.6
+    - name: "Python: 3.7"
+      os: osx
+      language: shell
+      python: 3.7
+    - name: "Python: 3.8"
+      os: osx
+      language: shell
+      python: 3.8
+
+    - name: "Python 3.5.4 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.5.4
+      env: PATH=/c/Python35:/c/Python35/Scripts:$PATH
+    - name: "Python 3.6.8 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.6.8
+      env: PATH=/c/Python36:/c/Python36/Scripts:$PATH
+    - name: "Python 3.7.4 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.7.4
+      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
+
 
 install:
-  - pip install -e .
+  - pip install --upgrade pip
+  - pip install -e .[tests]
 
 script:
   - python --version
