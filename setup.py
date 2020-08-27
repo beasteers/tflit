@@ -74,8 +74,6 @@ def get_tflite_url(version='2.1.0.post1'):
         is_arm = platform.uname().machine.startswith("arm")
         arch = ('aarch64' if is_64 else 'armv7l') if is_arm else 'x86_64'
     elif system == 'Darwin':
-        if py_version == '38':
-            py_version = '37'  # ??
         arch = '10_14_x86_64'
     elif system == 'Windows':
         arch = 'amd64'
