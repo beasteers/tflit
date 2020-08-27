@@ -40,6 +40,7 @@ matrix:
     - &osx
       name: "Python: 3.5"
       os: osx
+      osx_image: xcode11.3
       language: shell
       env: PYVERSION=3.5
       before_install:
