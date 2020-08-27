@@ -30,20 +30,22 @@ matrix:
     - python: 3.7
       os: linux
       arch: arm64
-    - python: 3.8
-      os: linux
-      arch: arm64
+    # - python: 3.8
+    #   os: linux
+    #   arch: arm64
 
-    - name: "Python: 3.5"
-      os: osx
-      language: shell
-      python: 3.5
+    # - name: "Python: 3.5"
+    #   os: osx
+    #   language: shell
+    #   python: 3.5
     - name: "Python: 3.6"
       os: osx
+      osx_image: xcode9.4  # 3.6.5
       language: shell
       python: 3.6
     - name: "Python: 3.7"
       os: osx
+      osx_image: xcode10.2  # 3.7.3
       language: shell
       python: 3.7
 
@@ -68,6 +70,7 @@ matrix:
 
 
 install:
+  - [[ "$(python3 -V)" =~ "Python 3" ]] && alias python=python3
   - python --version
   - python -m pip install --upgrade pip
   - python -m pip install --upgrade -e .[tests]

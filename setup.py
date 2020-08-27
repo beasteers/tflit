@@ -105,7 +105,7 @@ setuptools.setup(
         'tflite_runtime@{}'.format(get_tflite_url())
     ],
     extras_require={
-        'tests': ['pytest', 'pytest-cov'],
+        'tests': ['pytest-cov'],
     },
     license='MIT License',
     keywords='tflite runtime tensorflow keras deep machine learning model edge embedded compute cnn')
