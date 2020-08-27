@@ -64,7 +64,7 @@ VERSIONS = {
 }
 NO_M = ['38']
 
-MAC_VERSION = 10, 4
+MAC_VERSION = 10, 14
 
 def get_tflite_url(version='2.1.0.post1'):
     system = platform.system()
