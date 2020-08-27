@@ -41,8 +41,7 @@ matrix:
       name: "Python: 3.5"
       os: osx
       language: shell
-      python: 3.5
-      env: PYVERSION=python3.5
+      env: PYVERSION=3.5
       before_install:
         - wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
         - bash miniconda.sh -b -p $HOME/miniconda
@@ -55,12 +54,10 @@ matrix:
         - source activate venv
     - <<: *osx
       name: "Python: 3.6"
-      python: 3.6
-      env: PYVERSION=python3.6
+      env: PYVERSION=3.6
     - <<: *osx
       name: "Python: 3.7"
-      python: 3.7
-      env: PYVERSION=python3.7
+      env: PYVERSION=3.7
 
     - name: "Python 3.5.4 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
