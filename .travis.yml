@@ -3,6 +3,8 @@ language: python
 notifications:
   email: false
 
+dist: trusty
+
 cache:
   apt: True
   directories:
@@ -71,10 +73,9 @@ install:
   - python -m pip install -e .[tests]
 
 script:
-  - python -m pytest --cov --cov-report term-missing
+  - python -m pytest --cov=tflit --cov-report term-missing
 
 after_success:
-  - python -m coveralls
   - python -m pip uninstall -y tflit
 
 after_failure:

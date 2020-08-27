@@ -69,7 +69,7 @@ MAC_VERSION = 10, 4
 def get_tflite_url(version='2.1.0.post1'):
     system = platform.system()
     platfm = PLATFORMS.get(system)
-    arch = platform.uname().machine
+    arch = platform.uname()[4]  # .machine
     py_version = '{}{}'.format(*sys.version_info)
 
     if system == 'Linux':
@@ -105,7 +105,7 @@ setuptools.setup(
         'tflite_runtime@{}'.format(get_tflite_url())
     ],
     extras_require={
-        'tests': ['pytest', 'pytest-cov', 'codecov'],
+        'tests': ['pytest', 'pytest-cov'],
     },
     license='MIT License',
     keywords='tflite runtime tensorflow keras deep machine learning model edge embedded compute cnn')
