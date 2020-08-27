@@ -50,7 +50,8 @@ matrix:
         - hash -r
         - conda config --set always_yes yes --set changeps1 no
         - conda info -a
-        - conda create -q -n venv "python=$PYVERSION" $deps
+        - echo $PYVERSION
+        - conda create -q -n venv python=$PYVERSION
         - source activate venv
     - <<: *osx
       name: "Python: 3.6"
