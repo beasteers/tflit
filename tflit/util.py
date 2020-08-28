@@ -11,12 +11,15 @@ def format_details(details, ignore=_HIDDEN_DETAILS, depth=1):
         for d in details
     )
 
-def format_dict(data, depth=0, ignore=(), w=2):
+def format_dict(data, depth=0, ignore=(), w=2, align=False):
+    data = {f'{k}:': v for k, v in data.items() if k not in ignore}
+    indent = ' '*w*depth
     return '\n'.join(
-        '{}{}: {}'.format(
-            ' '*w*depth, k,
-            format_dict(v, depth=depth+1, ignore=ignore, w=w)
-            if isinstance(v, dict) else v
+        '{}{:<{kw}} {}'.format(
+            indent, k,
+            ('\n' + format_dict(v, depth=depth+1, ignore=ignore, w=w, align=align))
+            if isinstance(v, dict) else v,
+            kw=max(len(k) for k in data) if align else 0,
         )
         for k, v in data.items()
         if k not in ignore
