@@ -45,7 +45,7 @@ import setuptools
 
 USERNAME = 'beasteers'
 NAME = 'tflit'
-VERSION = '0.0.2'
+VERSION = '0.0.4'
 
 
 URL = (
@@ -90,6 +90,15 @@ def get_tflite_url(version='2.1.0.post1'):
     )
 
 
+# Fuck it. Pypi you gave me no other choice. You said:
+#   ERROR: Packages installed from PyPI cannot depend on packages which are not also hosted on PyPI.
+# so I say asdfkadsljsldkfjklsdjflka eat shit. Imma do it anyways. (╯°□°）╯︵ ┻━┻
+import os
+os.system('{} -m pip install {}'.format(
+    sys.executable or 'python',
+    get_tflite_url()))
+
+
 setuptools.setup(
     name=NAME,
     version=VERSION,
@@ -103,7 +112,7 @@ setuptools.setup(
     # entry_points={'console_scripts': ['{name}={name}:main'.format(name=NAME)]},
     install_requires=[
         'numpy',
-        'tflite_runtime@{}'.format(get_tflite_url())
+        # 'tflite_runtime@{}'.format(get_tflite_url())
     ],
     extras_require={
         'tests': ['pytest-cov'],
