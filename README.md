@@ -64,7 +64,7 @@ def prepare_model_function(model, verbose=False):
     model.allocate_tensors()
     def compute(x):
         # set inputs
-        model.set_tensor(in_dets['index'], X.astype(np.float32))
+        model.set_tensor(in_dets['index'], X.astype(in_dets['dtype']))
         # compute outputs
         model.invoke()
         # get outputs
@@ -81,7 +81,7 @@ def prepare_model_function(model, verbose=False):
     compute.output_shape = out_dets['shape'][1:]
     return compute
 ```
-This was cleaner than the code that I factored it out from, but it is still unnecessarily complex and I got tired after copying it over to my 3rd project.
+This was cleaner than the code that I factored it out from, but it is still unnecessarily complex and I got tired after copying it over to my 3rd project. This also doesn't handle things like multiple inputs/outputs or batching.
 
 ## Notes
  - I was having trouble getting tflite_runtime to install as a dependency in `setup.py` so right now, it's just installing on first run if it's not already installed. I'll probably fix that at some point... but I have other things that I need to be doing and this is working atm. Hopefully tensorflow will just start deploying to pypi and this will all be resolved. Not sure what's going on there...
