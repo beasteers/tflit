@@ -45,6 +45,7 @@ import setuptools
 
 USERNAME = 'beasteers'
 NAME = 'tflit'
+VERSION = '0.0.2'
 
 
 URL = (
@@ -91,7 +92,7 @@ def get_tflite_url(version='2.1.0.post1'):
 
 setuptools.setup(
     name=NAME,
-    version='0.0.1',
+    version=VERSION,
     description='tflite_runtime, but easier.',
     long_description=open('README.md').read().strip(),
     long_description_content_type='text/markdown',
