@@ -2,7 +2,7 @@ import setuptools
 
 USERNAME = 'beasteers'
 NAME = 'tflit'
-VERSION = '0.0.10'
+VERSION = '0.0.11'
 
 setuptools.setup(
     name=NAME,
