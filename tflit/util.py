@@ -12,7 +12,7 @@ def format_details(details, ignore=_HIDDEN_DETAILS, depth=1):
     )
 
 def format_dict(data, depth=0, ignore=(), w=2, align=False):
-    data = {f'{k}:': v for k, v in data.items() if k not in ignore}
+    data = {'{}:'.format(k): v for k, v in data.items() if k not in ignore}
     indent = ' '*w*depth
     return '\n'.join(
         '{}{:<{kw}} {}'.format(
