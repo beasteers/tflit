@@ -1,10 +1,9 @@
 import numpy as np
 import tflite_runtime.interpreter as tflite
+from . import util
 
 
 class Model:
-
-    batch_size = 1
 
     def __init__(self, model_path, inputs=None, outputs=None, batch_size=None):
         self.model_path = model_path
@@ -14,9 +13,9 @@ class Model:
         self.output_details = self.interpreter.get_output_details()
 
         # convert user inputted indexes to the actual tensor indexes
-        self._input_idxs, self.multi_input = _get_auto_index(
+        self._input_idxs, self.multi_input = util.get_auto_index(
             inputs, self.input_details)
-        self._output_idxs, self.multi_output = _get_auto_index(
+        self._output_idxs, self.multi_output = util.get_auto_index(
             outputs, self.output_details)
 
         # update batch if provided
@@ -24,7 +23,7 @@ class Model:
             self.set_batch_size(batch_size)
 
     def __repr__(self):
-        return '{}({}, in={} out={})'.format(
+        return '{}( {!r}, in={} out={} )'.format(
             self.__class__.__name__, self.model_path,
             self.input_shape, self.output_shape)
 
@@ -48,7 +47,10 @@ class Model:
     # Model
     ##############
 
-    def predict(self, X, multi_input=None, multi_output=None, add_batch=False):
+    def __call__(self, X, *a, **kw):
+        return self.predict(X, *a, **kw)
+
+    def predict_batch(self, X, multi_input=None, multi_output=None, add_batch=False):
         # set inputs
         X = self._check_inputs(X, multi_input)
         for i, idx in self._input_idxs:
@@ -63,40 +65,35 @@ class Model:
             self.interpreter.get_tensor(idx)
             for i, idx in self._output_idxs], multi_output)
 
-    def predict_batch(self, X, batch_size=None):
+    def predict(self, X):
         X = self._check_inputs(X)
-        batch_size = self._check_batch_size(X, batch_size)
-
-        outs = [
+        batch_size = self._check_batch_size(X)
+        # predict for each batch window
+        return self._check_outputs([
             np.concatenate(x) for x in zip(*(
-                self.predict([x[i][None] for x in X], True, True)
-                for i in range(len(X[0]))
+                self.predict_batch([x[i:i + batch_size] for x in X], True, True)
+                for i in range(0, len(X[0]), batch_size)
             ))
-        ]
-        return self._check_outputs(outs)
+        ])
 
     def _check_inputs(self, X, multi=None):
+        # coerce inputs to be a list
         return X if multi or self.multi_input else [X]
 
     def _check_outputs(self, Y, multi=None):
+        # return either a single array or list of arrays depending on
+        # single/multi output
         return (
             Y if multi or self.multi_output else
             Y[0] if Y else None)
 
-    def _check_batch_size(self, X, batch_size=None):
+    def _check_batch_size(self, X):
+        # check that there's only one batch size
         batch_sizes = [len(x) for x in X]
-        # check that there's only one size
-        unique_sizes = set(batch_sizes)
-        if len(unique_sizes) != 1:
+        if len(set(batch_sizes)) != 1:
             raise ValueError(
                 'Expected a single batch size. Got {}.'.format(batch_sizes))
-        # check that it's the size we expect
-        size = next(iter(unique_sizes))
-        if batch_size and batch_size != size:
-            raise ValueError('Expected a batch size of {}, got {}.'.format(
-                batch_size, size))
-
-        return size
+        return self.batch_size
 
     ##############
     # Info
@@ -149,36 +146,25 @@ class Model:
         shape = self.output_shapes
         return shape[0] if len(shape) == 1 else shape
 
+
+    _batch_size = None
+    @property
+    def batch_size(self):
+        if self._batch_size is None:
+            self._batch_size = next((x[0] for x in self.input_shapes), None)
+        return self._batch_size
+
+    @batch_size.setter
+    def batch_size(self, value):
+        self._batch_size = value
+
     # print
 
     def summary(self):
-        print('-' * 30)
-        print('|', self)
-        print('-- Input details --')
-        print(format_details(self.input_details))
-        print('-- Output details --')
-        print(format_details(self.output_details))
-        print('-' * 30)
-
-
-_HIDDEN_DETAILS = ('name',)
-
-def format_details(details, ignore=_HIDDEN_DETAILS):
-    return '\n'.join(
-        '  {}'.format(d['name']) + ''.join(
-            '\n    {}: {}'.format(k, v)
-            for k, v in d.items()
-            if k not in ignore
-        ) for d in details
-    )
-
-
-def _get_auto_index(idxs, details, multi_input=None):
-    if isinstance(idxs, int):
-        idxs = [idxs]
-    elif idxs is None:
-        idxs = list(range(len(details)))
-    multi_input = len(idxs) != 1 if multi_input is None else multi_input
-
-    idxs = [(i, details[i]['index']) for i in idxs]
-    return (idxs if multi_input else idxs[:1]), multi_input
+        print(util.add_border('\n'.join([
+            str(self),
+            '', '-- Input details --',
+            util.format_details(self.input_details),
+            '', '-- Output details --',
+            util.format_details(self.output_details),
+        ]), ch='.'))

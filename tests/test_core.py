@@ -39,7 +39,7 @@ def test_model(name):
     y_pred = apply_maybe_list(to_array, info['y_pred'], model.multi_output)
 
     # predict on test data
-    y_pred_tfl = model.predict(X_test)
+    y_pred_tfl = model.predict_batch(X_test)
 
     # check outputs
     assert [y.shape for y in y_pred_tfl] == [y.shape for y in y_pred]
@@ -52,7 +52,7 @@ def test_model(name):
     faux_batch = lambda x, size=32: np.concatenate([x]*size)
     X_test_batch = apply_maybe_list(faux_batch, X_test, model.multi_input)
     y_pred_batch = apply_maybe_list(faux_batch, y_pred, model.multi_output)
-    y_pred_batch_tfl = model.predict_batch(X_test_batch)
+    y_pred_batch_tfl = model.predict(X_test_batch)
 
     # check outputs
     assert [y.shape for y in y_pred_batch_tfl] == [y.shape for y in y_pred_batch]
