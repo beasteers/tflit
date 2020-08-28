@@ -7,13 +7,13 @@ def format_details(details, ignore=_HIDDEN_DETAILS, depth=1):
     return '\n'.join(
         '{}{} ({} {}) [i={}]'.format(
             ' '*2, d['name'], d['shape'], d['dtype'].__name__, d['index'])
-        + format_dict(d, ignore=ignore, depth=depth+2)
+        + '\n' + format_dict(d, ignore=ignore, depth=depth+2)
         for d in details
     )
 
 def format_dict(data, depth=0, ignore=(), w=2):
-    return ''.join(
-        '\n{}{}: {}'.format(
+    return '\n'.join(
+        '{}{}: {}'.format(
             ' '*w*depth, k,
             format_dict(v, depth=depth+1, ignore=ignore, w=w)
             if isinstance(v, dict) else v
