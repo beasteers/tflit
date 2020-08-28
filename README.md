@@ -46,6 +46,8 @@ y_pred = model.predict_batch(np.random.randn(1, 10, 30))
 
 
 ## Notes
+ - I was having trouble getting tflite_runtime to install as a dependency in `setup.py` so right now, it's just installing on first run if it's not already installed. I'll probably fix that at some point... but I have other things that I need to be doing and this is working atm. Hopefully tensorflow will just start deploying to pypi and this will all be resolved. Not sure what's going on there...
+
  - It's possible that `tflite_runtime` may not have a build for your system. Check [this](https://www.tensorflow.org/lite/guide/python) link to verify.
 
  - There's a bug with the current `tflite` converter where it doesn't copy over the input and output names.
