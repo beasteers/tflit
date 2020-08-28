@@ -91,28 +91,34 @@ def get_tflite_url(version='2.1.0.post1'):
 #   ERROR: Packages installed from PyPI cannot depend on packages which are not also hosted on PyPI.
 # so I say asdfkadsljsldkfjklsdjflka eat shit. Imma do it anyways. (╯°□°）╯︵ ┻━┻
 # apparently this is the recommended way anyways: https://pip.pypa.io/en/latest/user_guide/#using-pip-from-your-program
-def install(**kw):
+def install(verbose=False, **kw):
     import sys
     import subprocess
     url = get_tflite_url(**kw)
-    print('Getting tflite from:', url)
+    if verbose:
+        print('Getting tflite from:', url)
     output = subprocess.run(
         [sys.executable, '-m', 'pip', 'install', url],
-        check=False, stdout=sys.stdout, stderr=sys.stderr)
-    print(output)
+        check=False,
+        stdout=sys.stdout if verbose else subprocess.PIPE,
+        stderr=sys.stderr)
+    if verbose:
+        print(output)
     output.check_returncode()
 
-def check_install(**kw):
+def check_install(verbose=False, **kw):
+    USER_MESSAGE = (
+        "NOTE: The reason that this is even necessary is because tensorflow still "
+        "hasn't released tflite_runtime on pypi and pypi freaks out if "
+        "a url outside of pypi is included as a dependency. "
+        "Once this upstream issue is resolved this message will go away.")
     try:
         import tflite_runtime
     except ImportError as e:
         print(e, 'installing the right version for your system now...')
-        print("NOTE: The reason that this is even necessary is because tensorflow still "
-              "hasn't released tflite_runtime on pypi and pypi freaks out if "
-              "a url outside of pypi is included as a dependency. *eye roll*. "
-              "So basically, the only way I could think to do it is to do it "
-              "on first run, which is now. So Hi. Sorry.")
-        install(**kw)
-        print('All done!! Carry on.')
-        print('.'*50)
-        print()
+        if verbose:
+            print(USER_MESSAGE)
+        install(verbose=verbose, **kw)
+        if verbose:
+            print('.'*50)
+        print('All done! Carry on.')
