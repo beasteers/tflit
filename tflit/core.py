@@ -51,6 +51,7 @@ class Model:
         return self.predict(X, *a, **kw)
 
     def predict_batch(self, X, multi_input=None, multi_output=None, add_batch=False):
+        '''Predict a single batch.'''
         # set inputs
         X = self._check_inputs(X, multi_input)
         for i, idx in self._input_idxs:
@@ -66,15 +67,24 @@ class Model:
             for i, idx in self._output_idxs], multi_output)
 
     def predict(self, X):
+        '''Predict data.'''
+        return self._check_outputs([
+            np.concatenate(x) for x in zip(*(self.predict_each_batch(X)))
+        ])
+
+    def as_batches(self, X, multi=False):
+        '''Yield X in batches.'''
         X = self._check_inputs(X)
         batch_size = self._check_batch_size(X)
-        # predict for each batch window
-        return self._check_outputs([
-            np.concatenate(x) for x in zip(*(
-                self.predict_batch([x[i:i + batch_size] for x in X], True, True)
-                for i in range(0, len(X[0]), batch_size)
-            ))
-        ])
+        for i in range(0, len(X[0]), batch_size):
+            xi = [x[i:i + batch_size] for x in X]
+            yield xi if multi or len(xi) != 1 else xi[0]
+
+    def predict_each_batch(self, X):
+        '''Predict and yield each batch.'''
+        for x in self.as_batches(X, multi=True):
+            yield self.predict_batch(x, True, True)
+
 
     def _check_inputs(self, X, multi=None):
         # coerce inputs to be a list
