@@ -122,3 +122,8 @@ def check_install(verbose=False, **kw):
         if verbose:
             print('.'*50)
         print('All done! Carry on.')
+
+
+if __name__ == '__main__':
+    import fire
+    fire.Fire(check_install)
