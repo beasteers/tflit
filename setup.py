@@ -1,8 +1,17 @@
+import sys
 import setuptools
 
 USERNAME = 'beasteers'
 NAME = 'tflit'
-VERSION = '0.0.11'
+VERSION = '0.0.15'
+
+
+from tflit import tflite_install
+if not (len(sys.argv) > 1 and sys.argv[1] == 'sdist'):
+    # from importlib.machinery import SourceFileLoader
+    # version = SourceFileLoader('tflit.tflite_install',
+    #                            'tflit/tflite_install.py').load_module()
+    tflite_install.check_install(verbose=True)
 
 setuptools.setup(
     name=NAME,
@@ -18,7 +27,7 @@ setuptools.setup(
     # entry_points={'console_scripts': ['{name}={name}:main'.format(name=NAME)]},
     install_requires=[
         'numpy',
-        # 'tflite_runtime@{}'.format(get_tflite_url())
+        # 'tflite_runtime@{}'.format(tflite_install.get_tflite_url())
     ],
     extras_require={
         'tests': ['pytest-cov'],

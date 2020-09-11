@@ -18,29 +18,29 @@ class Model:
         self._output_idxs, self.multi_output = util.get_auto_index(
             outputs, self.output_details)
 
-        # update batch if provided
-        if batch_size:
-            self.set_batch_size(batch_size)
+        # # update batch if provided
+        # if batch_size:
+        #     self.set_batch_size(batch_size)
 
     def __repr__(self):
         return '{}( {!r}, in={} out={} )'.format(
             self.__class__.__name__, self.model_path,
             self.input_shape, self.output_shape)
 
-    def set_batch_size(self, batch_size):
-        # set batch for inputs
-        for d in self.input_details:
-            self.interpreter.resize_tensor_input(
-                d['index'], [batch_size] + d['shape'][1:])
-
-        # set batch for outputs
-        for d in self.output_details:
-            self.interpreter.resize_tensor_input(
-                d['index'], [batch_size] + d['shape'][1:])
-
-        # apply changes
-        self.interpreter.allocate_tensors()
-        self.batch_size = batch_size
+    # def set_batch_size(self, batch_size):
+    #     # set batch for inputs
+    #     for d in self.input_details:
+    #         self.interpreter.resize_tensor_input(
+    #             d['index'], [batch_size] + d['shape'][1:])
+    #
+    #     # set batch for outputs
+    #     for d in self.output_details:
+    #         self.interpreter.resize_tensor_input(
+    #             d['index'], [batch_size] + d['shape'][1:])
+    #
+    #     # apply changes
+    #     self.interpreter.allocate_tensors()
+    #     self.batch_size = batch_size
 
 
     ##############
@@ -66,24 +66,26 @@ class Model:
             self.interpreter.get_tensor(idx)
             for i, idx in self._output_idxs], multi_output)
 
-    def predict(self, X):
+    def predict(self, X, multi_input=None, multi_output=None):
         '''Predict data.'''
         return self._check_outputs([
-            np.concatenate(x) for x in zip(*(self.predict_each_batch(X)))
-        ])
+            np.concatenate(x) for x in zip(*self.predict_each_batch(
+                X, multi_input=multi_input, multi_output=True))
+        ], multi=multi_output)
 
-    def as_batches(self, X, multi=False):
+    def as_batches(self, X, multi_input=None, multi_output=None):
         '''Yield X in batches.'''
-        X = self._check_inputs(X)
+        X = self._check_inputs(X, multi_input)
         batch_size = self._check_batch_size(X)
         for i in range(0, len(X[0]), batch_size):
             xi = [x[i:i + batch_size] for x in X]
-            yield xi if multi or len(xi) != 1 else xi[0]
+            yield xi if multi_output or len(xi) != 1 else xi[0]
 
-    def predict_each_batch(self, X):
+    def predict_each_batch(self, X, multi_input=None, multi_output=None):
         '''Predict and yield each batch.'''
-        for x in self.as_batches(X, multi=True):
-            yield self.predict_batch(x, True, True)
+        # NOTE: multi=True so we don't squeeze
+        for x in self.as_batches(X, multi_input=multi_input, multi_output=True):
+            yield self.predict_batch(x, True, multi_output)
 
 
     def _check_inputs(self, X, multi=None):
@@ -95,7 +97,7 @@ class Model:
         # single/multi output
         return (
             Y if multi or self.multi_output else
-            Y[0] if Y else None)
+            Y[0] if len(Y) else None)
 
     def _check_batch_size(self, X):
         # check that there's only one batch size
