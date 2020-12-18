@@ -3,7 +3,7 @@ import setuptools
 
 USERNAME = 'beasteers'
 NAME = 'tflit'
-VERSION = '0.0.15'
+VERSION = '0.0.16'
 
 
 from tflit import tflite_install

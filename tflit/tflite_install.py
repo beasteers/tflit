@@ -12,38 +12,46 @@ jq.onload = function() { jQuery.noConflict(); $ = jQuery; }
 jq.src = "https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js";
 document.getElementsByTagName('head')[0].appendChild(jq);
 ```
-
-[
-    # Linux ARM 32
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp35-cp35m-linux_armv7l.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp36-cp36m-linux_armv7l.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_armv7l.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp38-cp38-linux_armv7l.whl",
-    # Linux ARM 64
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp35-cp35m-linux_aarch64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp36-cp36m-linux_aarch64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_aarch64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp38-cp38-linux_aarch64.whl",
-    # Linux x86-64
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp35-cp35m-linux_x86_64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp36-cp36m-linux_x86_64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-linux_x86_64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp38-cp38-linux_x86_64.whl",
-    # Mac 10.14
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp35-cp35m-macosx_10_14_x86_64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp36-cp36m-macosx_10_14_x86_64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-macosx_10_14_x86_64.whl",
-    # Windows 10
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp35-cp35m-win_amd64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp36-cp36m-win_amd64.whl",
-    "https://dl.google.com/coral/python/tflite_runtime-2.1.0.post1-cp37-cp37m-win_amd64.whl"
-]
-
 '''
 
+# pulled 12/17/2020. This is just for reference, and is not guaranteed (or required to be up to date).
+# as you can see this isn't used anywhere. We compute the url below.
+_CURRENT_URLS_ = [
+    # linux arm32
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp35-cp35m-linux_armv7l.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp36-cp36m-linux_armv7l.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp37-cp37m-linux_armv7l.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp38-cp38-linux_armv7l.whl",
+    # linux arm64
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp35-cp35m-linux_aarch64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp36-cp36m-linux_aarch64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp37-cp37m-linux_aarch64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp38-cp38-linux_aarch64.whl",
+    # linux x86-64
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp35-cp35m-linux_x86_64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp36-cp36m-linux_x86_64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp37-cp37m-linux_x86_64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp38-cp38-linux_x86_64.whl",
+    # mac
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp35-cp35m-macosx_10_15_x86_64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp36-cp36m-macosx_10_15_x86_64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp37-cp37m-macosx_10_15_x86_64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp38-cp38-macosx_10_15_x86_64.whl",
+    # windows
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp35-cp35m-win_amd64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp36-cp36m-win_amd64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp37-cp37m-win_amd64.whl",
+    "https://github.com/google-coral/pycoral/releases/download/release-frogfish/tflite_runtime-2.5.0-cp38-cp38-win_amd64.whl"
+]
+
+
+# URL = (
+#     'https://dl.google.com/coral/python/tflite_runtime-'
+#     '{version}-cp{py}-cp{py}{m}-{platform}_{arch}.whl')
 URL = (
-    'https://dl.google.com/coral/python/tflite_runtime-'
-    '{version}-cp{py}-cp{pym}-{platform}_{arch}.whl')
+    'https://github.com/google-coral/pycoral/releases/download/release-frogfish/'
+    'tflite_runtime-{version}-cp{py}-cp{py}{m}-{platform}_{arch}.whl'
+)
 
 PLATFORMS = {
     'Linux': 'linux',
@@ -53,21 +61,21 @@ PLATFORMS = {
 
 VERSIONS = {
     'Linux': ['35', '36', '37', '38'],
-    'Darwin': ['35', '36', '37'],
-    'Windows': ['35', '36', '37'],
+    'Darwin': ['35', '36', '37', '38'],
+    'Windows': ['35', '36', '37', '38'],
 }
 NO_M = ['38']
 
-MAC_VERSION = 10, 14
+MAC_VERSION = 10, 15
 
-def get_tflite_url(version='2.1.0.post1'):
+def get_tflite_url(version='2.5.0'):
     import sys
     import platform
 
-    system = platform.system()
-    platfm = PLATFORMS.get(system)
-    arch = platform.uname()[4]  # .machine
-    py_version = '{}{}'.format(*sys.version_info)
+    system = platform.system()  # Linux, Darwin, Windows
+    platfm = PLATFORMS.get(system)  # linux, macosx, win
+    arch = platform.uname()[4]  # armv7l, aarch64, x86_64, amd64
+    py_version = '{}{}'.format(*sys.version_info)  # (3, 8)
 
     if system == 'Linux':
         pass
@@ -79,8 +87,7 @@ def get_tflite_url(version='2.1.0.post1'):
         raise ValueError('Unknown system: {}'.format(system))
 
     return URL.format(
-        version=version, py=py_version,
-        pym=py_version if py_version in NO_M else py_version + 'm',
+        version=version, py=py_version, m='m'*(py_version not in NO_M),
         platform=platfm,
         arch=arch,
     )
