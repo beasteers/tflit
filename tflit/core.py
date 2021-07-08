@@ -106,17 +106,19 @@ class Model:
     #     return self.interpreter.get_tensor(index)
 
     def input(self, i):
-        '''Returns a numpy view pointing to the tensor buffer.'''
+        '''Returns a numpy view pointing to the input tensor buffer.'''
         return self.interpreter.tensor(self._input_idxs[i] if isinstance(i, int) else i)()
 
     def output(self, i):
-        '''Returns a numpy view pointing to the tensor buffer.'''
+        '''Returns a numpy view pointing to the output tensor buffer.'''
         return self.interpreter.tensor(self._output_idxs[i] if isinstance(i, int) else i)()
 
     def input_value(self, i=0):
+        '''Returns a copy of the input tensor value.'''
         return self.interpreter.get_tensor(self._input_idxs[i] if isinstance(i, int) else i)
 
     def output_value(self, i=0):
+        '''Returns a copy of the output tensor value.'''
         return self.interpreter.get_tensor(self._output_idxs[i] if isinstance(i, int) else i)
 
     ##############
@@ -195,50 +197,63 @@ class Model:
 
     @property
     def input_names(self):
+        '''The input names. This is a list of strings.'''
         return [d['name'] for d in self.input_details]
 
     @property
     def output_names(self):
+        '''The output names. This is a list of strings. This may not be correct
+        depending on how the model was exported.'''
         return [d['name'] for d in self.output_details]
 
     # dtypes
 
     @property
     def input_dtypes(self):
+        '''The input dtypes. This is a list of np.dtype objects.'''
         return [d['dtype'] for d in self.input_details]
 
     @property
     def output_dtypes(self):
+        '''The output dtypes. This is a list of np.dtype objects.'''
         return [d['dtype'] for d in self.output_details]
 
     @property
     def dtype(self):
+        '''The model dtype. This will take the first dtype it finds for the inputs/outputs.'''
         return next(iter(self.input_dtypes + self.output_dtypes), None)
 
     # shapes
 
     @property
     def input_shapes(self):
+        '''The input shapes. This is a list of tuples.'''
         return [tuple(d['shape']) for d in self.input_details]
 
     @property
     def output_shapes(self):
+        '''The output shapes. This is a list of tuples.'''
         return [tuple(d['shape']) for d in self.output_details]
 
     # shape
 
     @property
     def input_shape(self):
+        '''The input shape. If there are more than one input, this will be a list of tuples,
+        otherwise it'll be a single tuple.'''
         shape = self.input_shapes
         return shape[0] if len(shape) == 1 else shape
 
     @property
     def output_shape(self):
+        '''The output shape. If there are more than one output, this will be a list of tuples,
+        otherwise it'll be a single tuple.'''
         shape = self.output_shapes
         return shape[0] if len(shape) == 1 else shape
 
     @property
     def batch_size(self):
+        '''The current batch size. If there are more than one input, it will look at the first one.'''
         shapes = self.input_shapes
         return shapes[0][0] if shapes else None
 
