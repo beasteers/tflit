@@ -31,7 +31,7 @@ def test_model(name):
     assert model.input_names == info['input_names']
     # assert model.output_names == info['output_names']
 
-    assert model.dtype == info['dtype']
+    assert model.dtype.__name__ == info['dtype']
 
     # load arrays from json info
     to_array = lambda x: np.asarray(x, dtype=model.dtype)
@@ -49,10 +49,14 @@ def test_model(name):
         rtol=1e-4, atol=1e-5)
 
     # apply batching
-    faux_batch = lambda x, size=32: np.concatenate([x]*size)
+    BATCH_SIZE = 32
+    N_BATCH = 1
+    faux_batch = lambda x, size=None: np.concatenate([x]*(size or N_BATCH*BATCH_SIZE))
     X_test_batch = apply_maybe_list(faux_batch, X_test, model.multi_input)
     y_pred_batch = apply_maybe_list(faux_batch, y_pred, model.multi_output)
     y_pred_batch_tfl = model.predict(X_test_batch)
+
+    assert len(list(model.predict_each_batch(X_test_batch))) == 1.*BATCH_SIZE*N_BATCH
 
     # check outputs
     assert [y.shape for y in y_pred_batch_tfl] == [y.shape for y in y_pred_batch]
@@ -61,7 +65,34 @@ def test_model(name):
         np.asarray(list(flatten(y_pred_batch))),
         rtol=1e-4, atol=1e-5)
 
-    return model
+    # test batch size
+    model.set_batch_size(32)
+    assert [s[0] == 32 for s in model.input_shapes]
+    model.summary()
+
+    # apply batching
+    X_test_batch = apply_maybe_list(faux_batch, X_test, model.multi_input)
+    y_pred_batch = apply_maybe_list(faux_batch, y_pred, model.multi_output)
+    y_pred_batch_tfl = model.predict(X_test_batch)
+
+    assert model.batch_size == 32
+    assert len(list(model.predict_each_batch(X_test_batch))) == 1.*BATCH_SIZE*N_BATCH / model.batch_size
+
+    # check outputs
+    assert [y.shape for y in y_pred_batch_tfl] == [y.shape for y in y_pred_batch]
+    assert np.allclose(
+        np.asarray(list(flatten(y_pred_batch_tfl))),
+        np.asarray(list(flatten(y_pred_batch))),
+        rtol=1e-4, atol=1e-5)
+
+    model = tflit.Model(model_file.format(name), num_threads=4)
+    y_pred_batch_tfl = model.predict(X_test_batch)
+    assert [y.shape for y in y_pred_batch_tfl] == [y.shape for y in y_pred_batch]
+    assert np.allclose(
+        np.asarray(list(flatten(y_pred_batch_tfl))),
+        np.asarray(list(flatten(y_pred_batch))),
+        rtol=1e-4, atol=1e-5)
+
 
 
 

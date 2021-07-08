@@ -20,6 +20,7 @@ shhhh/
 build/
 develop-eggs/
 dist/
+dist-tfrun/
 downloads/
 eggs/
 .eggs/

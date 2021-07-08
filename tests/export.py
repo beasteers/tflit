@@ -3,6 +3,8 @@ import json
 import numpy as np
 import tensorflow as tf
 import tensorflow.keras.layers as L
+import tensorflow.keras.backend as K
+import tflit
 
 
 def basic():
@@ -37,9 +39,19 @@ def multi_in_out():
     out2 = L.Dense(6, name='sdfg2')(x)
     return tf.keras.Model([inp1, inp2], [out1, out2])
 
+# def multi_dtype():
+#     inp1 = x = L.Input((10,), name='adsf', dtype=np.float32)
+#     inp2 = x = L.Input((10,), name='adsf2', dtype=np.float64)  #K.cast(, np.float32)
+#     x = L.Add()([inp1, inp2])
+#     out1 = L.Dense(5, name='sdfg')(x)
+#     out2 = L.Dense(6, name='sdfg2')(x)
+#     # out2 = K.cast(out2, name='sdfg2')
+#     return tf.keras.Model([inp1, inp2], [out1, out2])
+
 
 MODEL_FUNCS = [
-    basic, basic2, multi_input, multi_output, multi_in_out
+    basic, basic2, multi_input, multi_output, multi_in_out, 
+    # multi_dtype
 ]
 
 
@@ -82,18 +94,22 @@ def main():
         model.summary()
         info = get_model_info(model)
 
-        with open(model_info_file.format(name), 'w') as f:
-            json.dump(info, f)
-
         # Convert model
         converter = tf.lite.TFLiteConverter.from_keras_model(model)
         converter.experimental_new_converter = True
         tflite_model = converter.convert()
+        # litmodel = tflit.Model(model_content=tflite_model)
+        print(type(tflite_model))
+        # print(litmodel)
 
         # Save model.
         fname = model_file.format(name)
         with tf.io.gfile.GFile(fname, 'wb') as f:
             f.write(tflite_model)
+
+        with open(model_info_file.format(name), 'w') as f:
+            json.dump(info, f)
+
         print(f'Saved to {fname}.')
 
 

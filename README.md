@@ -12,6 +12,9 @@ What this does:
  - Detects your platform + Python version so you don't have to pick the right url and you can add `tflite_runtime` as a dependency **without having to pick a single platform to support.**
  - Creates a familiar `keras`-like interface for models, so you can do `tflit.Model(path).predict(X)` without ever having to think about tensor indexes or three step predictions, or batching.
 
+Helpful Links:
+ - [`tflite_runtime.Interpreter` Reference](https://www.tensorflow.org/lite/api_docs/python/tf/lite/Interpreter)
+ - [`tflite_runtime` Install Guide](https://www.tensorflow.org/lite/guide/python)
 
 ## Install
 
@@ -44,6 +47,30 @@ y_pred = model.predict(np.random.randn(32, 10, 30))
 y_pred = model.predict_batch(np.random.randn(1, 10, 30))
 ```
 
+### Additional tflite stuff not in Keras
+```python
+# remember, you can access the tflite_runtime interpreter directly
+# so if something is being weird, please submit an issue, but also
+# there's not that much code in here so just look here to figure out
+# the right way:
+# https://www.tensorflow.org/lite/api_docs/python/tf/lite/Interpreter
+interpreter = model.interpreter
+
+# change the model's batch size
+model.set_batch_size(64)
+
+# reset the model variables
+model.reset()
+
+# get tensor by index
+model.input(1)  # 2nd input
+model.output(0)  # 1st output
+
+# get tensor value copy by index
+model.input_value(1)  # 2nd input
+model.output_value(0)  # 1st output
+
+```
 ## Dark Ages
 
 Just for reference, this is how I used to do it:
@@ -84,6 +111,8 @@ def prepare_model_function(model, verbose=False):
 This was cleaner than the code that I factored it out from, but it is still unnecessarily complex and I got tired after copying it over to my 3rd project. This also doesn't handle things like multiple inputs/outputs or batching.
 
 ## Notes
+ - Update 7/8/21: Tensorflow has gotten a bit better about being able to pip install tflite_runtime - however, I don't understand why they won't just release it to PyPI, like I'm sure it's just like one or two devs at google, but like if you're already pushing to google coral, why can't you just install twine too? So now you can install it with: `pip install --index-url https://google-coral.github.io/py-repo/ tflite_runtime`, except, you have to specify the index url specifically (UGH!)
+
  - I was having trouble getting tflite_runtime to install as a dependency in `setup.py` so right now, it's just installing on first run if it's not already installed. I'll probably fix that at some point... but I have other things that I need to be doing and this is working atm. Hopefully tensorflow will just start deploying to pypi and this will all be resolved. Not sure what's going on there...
 
  - It's possible that `tflite_runtime` may not have a build for your system. Check [this](https://www.tensorflow.org/lite/guide/python) link to verify.
@@ -99,9 +128,8 @@ This was cleaner than the code that I factored it out from, but it is still unne
 
     But still no luck with the output names :/. To be clear, this is a tensorflow issue and I have no control over this.
 
+ - ~~I intended to have a `model.set_batch_size` method to change the batch size at runtime, but it doesn't currently work because tflite freaks out about there being an increased tensor size (it doesn't know how to broadcast). This is also a tensorflow issue.~~ 
 
- - I intended to have a `model.set_batch_size` method to change the batch size at runtime, but it doesn't currently work because tflite freaks out about there being an increased tensor size (it doesn't know how to broadcast). This is also a tensorflow issue.
-
-    For the time being, we just compute one batch at a time and concatenate them at the end. If the model's fixed batch size doesn't divide evenly, it will throw an error. By default, tflite converts `None` batch sizes to `1` so most of the time it won't be a problem. To compute a single frame, it is more efficient to use `model.predict_batch(X)` directly.
+    ~~For the time being, we just compute one batch at a time and concatenate them at the end. If the model's fixed batch size doesn't divide evenly, it will throw an error. By default, tflite converts `None` batch sizes to `1` so most of the time it won't be a problem. To compute a single frame, it is more efficient to use `model.predict_batch(X)` directly.~~
 
 I would love to get both of these resolved, but they are out of my control and I don't really have the bandwidth or the urgent need to have these resolved.

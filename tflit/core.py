@@ -4,50 +4,127 @@ from . import util
 
 
 class Model:
+    '''Tflite Model, providing a similar interface to Keras.
 
-    def __init__(self, model_path, inputs=None, outputs=None, batch_size=None):
+    Example:
+    >>> model = tflit.Model('path/to/model.tflite', batch_size=32, num_threads=3)
+    >>> model.summary()
+    >>> model.predict(X)  # if multiple inputs, X is a list, otherwise, just the array.
+
+    Alternate Prediction Methods:
+    >>> # predict with arbitrary batch size
+    >>> model.predict(np.ones([121, 128, 128, 1]))
+    >>> # Output: array([121, 10])  # output matches batch size
+
+    >>> # predict with exact batch size
+    >>> model.predict_batch(np.ones([32, 128, 128, 1]))  # must match batch size
+    >>> # Output: array([32, 10])  # output matches batch size
+
+    >>> # predict each batch but keep them separate
+    >>> model.predict_each_batch(np.ones([68, 128, 128, 1]))
+    >>> # Output: [array([32, 10]), array([32, 10]), array([4, 10])]  # output matches batch size
+
+    >>> # predict while yielding over batches
+    >>> for x in model.predict_each_batch(np.ones([68, 128, 128, 1])):
+    ...     print(x.shape)
+    >>> # Output: [array([32, 10]), array([32, 10]), array([4, 10])]  # output matches batch size
+
+    >>> # predict while yielding over batches (manually)
+    >>> for x in self.as_batches(X, multi_output=True):  # set multi-out/input to prevent squeezing
+    ...     out = self.predict_batch(x, multi_input=True)
+    >>> # Output: [array([32, 10]), array([32, 10]), array([4, 10])]  # output matches batch size
+    '''
+    input_details = ()
+    output_details = ()
+    multi_input = multi_output = True
+    _input_idxs = ()
+    _output_idxs = ()
+    def __init__(self, model_path=None, inputs=None, outputs=None, batch_size=None, num_threads=None, model_content=None, allocate=True, **kw):
+        assert model_path or model_content
         self.model_path = model_path
-        self.interpreter = tflite.Interpreter(model_path)
-        self.interpreter.allocate_tensors()
-        self.input_details = self.interpreter.get_input_details()
-        self.output_details = self.interpreter.get_output_details()
+        self.interpreter = tflite.Interpreter(model_path, num_threads=num_threads, model_content=model_content, **kw)
+        self._given_input_idxs = inputs
+        self._given_output_idxs = outputs
+        if allocate:
+            self.reallocate()
 
-        # convert user inputted indexes to the actual tensor indexes
-        self._input_idxs, self.multi_input = util.get_auto_index(
-            inputs, self.input_details)
-        self._output_idxs, self.multi_output = util.get_auto_index(
-            outputs, self.output_details)
-
-        # # update batch if provided
-        # if batch_size:
-        #     self.set_batch_size(batch_size)
+        # update batch if provided
+        if batch_size:
+            self.set_batch_size(batch_size)
 
     def __repr__(self):
         return '{}( {!r}, in={} out={} )'.format(
             self.__class__.__name__, self.model_path,
             self.input_shape, self.output_shape)
 
-    # def set_batch_size(self, batch_size):
-    #     # set batch for inputs
-    #     for d in self.input_details:
-    #         self.interpreter.resize_tensor_input(
-    #             d['index'], [batch_size] + d['shape'][1:])
-    #
-    #     # set batch for outputs
-    #     for d in self.output_details:
-    #         self.interpreter.resize_tensor_input(
-    #             d['index'], [batch_size] + d['shape'][1:])
-    #
-    #     # apply changes
-    #     self.interpreter.allocate_tensors()
-    #     self.batch_size = batch_size
+    # def resize_input(self, size, index=0, allocate=True):
+    #     if isinstance(size, int):
+    #         size = (size,) + self.input_shapes[index][1:]
+    #     self.interpreter.resize_tensor_input(index, size)
+    #     if allocate:
+    #         self.reallocate()
 
+    def reallocate(self):
+        '''Will reallocate tensors and refresh tensor details.'''
+        self.interpreter.allocate_tensors()
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
+
+        # convert user inputted indexes to the actual tensor indexes
+        self._input_idxs, self.multi_input = util.get_auto_index(
+            self._given_input_idxs, self.input_details)
+        self._output_idxs, self.multi_output = util.get_auto_index(
+            self._given_output_idxs, self.output_details)
+
+    def set_batch_size(self, batch_size, allocate=True):
+        '''Change the batch size of the model.'''
+        # set batch for inputs
+        for d in self.input_details:
+            self.interpreter.resize_tensor_input(
+                d['index'], [batch_size] + list(d['shape'][1:]))
+
+        # set batch for outputs
+        for d in self.output_details:
+            self.interpreter.resize_tensor_input(
+                d['index'], [batch_size] + list(d['shape'][1:]))
+
+        # apply changes
+        if allocate:
+            self.reallocate()
+            assert self.batch_size == batch_size, 'batch size expected to be {}, but was {}.'.format(batch_size, self.batch_size)
+
+    def reset(self):
+        '''Reset all interpreter variables.'''
+        self.interpreter.reset_all_variables()
+
+    # def __getitem__(self, i):
+    #     '''Returns a numpy view pointing to the tensor buffer.'''
+    #     return self.interpreter.tensor(self._input_idxs[i] if isinstance(i, int) else i)()
+
+    # def get(self, index):
+    #     '''Get a copy of the tensor buffer'''
+    #     return self.interpreter.get_tensor(index)
+
+    def input(self, i):
+        '''Returns a numpy view pointing to the tensor buffer.'''
+        return self.interpreter.tensor(self._input_idxs[i] if isinstance(i, int) else i)()
+
+    def output(self, i):
+        '''Returns a numpy view pointing to the tensor buffer.'''
+        return self.interpreter.tensor(self._output_idxs[i] if isinstance(i, int) else i)()
+
+    def input_value(self, i=0):
+        return self.interpreter.get_tensor(self._input_idxs[i] if isinstance(i, int) else i)
+
+    def output_value(self, i=0):
+        return self.interpreter.get_tensor(self._output_idxs[i] if isinstance(i, int) else i)
 
     ##############
     # Model
     ##############
 
     def __call__(self, X, *a, **kw):
+        '''Call predict on data. Alias for model.predict(...).'''
         return self.predict(X, *a, **kw)
 
     def predict_batch(self, X, multi_input=None, multi_output=None, add_batch=False):
@@ -55,8 +132,7 @@ class Model:
         # set inputs
         X = self._check_inputs(X, multi_input)
         for i, idx in self._input_idxs:
-            x = np.asarray(X[i], dtype=self.dtype)
-            self.interpreter.set_tensor(idx, x[None] if add_batch else x)
+            self.interpreter.set_tensor(idx, X[i][None] if add_batch else X[i])
 
         # compute outputs
         self.interpreter.invoke()
@@ -76,7 +152,14 @@ class Model:
     def as_batches(self, X, multi_input=None, multi_output=None):
         '''Yield X in batches.'''
         X = self._check_inputs(X, multi_input)
-        batch_size = self._check_batch_size(X)
+        batch_size = self.batch_size
+
+        # check that there's only one batch size
+        batch_sizes = [len(x) for x in X]
+        if len(set(batch_sizes)) != 1:
+            raise ValueError(
+                'Expected a single batch size. Got {}.'.format(batch_sizes))
+
         for i in range(0, len(X[0]), batch_size):
             xi = [x[i:i + batch_size] for x in X]
             yield xi if multi_output or len(xi) != 1 else xi[0]
@@ -88,24 +171,21 @@ class Model:
             yield self.predict_batch(x, True, multi_output)
 
 
-    def _check_inputs(self, X, multi=None):
+    def _check_inputs(self, X, multi=None, cast=True):
         # coerce inputs to be a list
-        return X if multi or self.multi_input else [X]
+        multi = self.multi_input if multi is None else multi
+        X = X if multi else [X]
+        if cast:
+            dtypes = self.input_dtypes
+            for i, dtype in enumerate(dtypes):
+                X[i] = np.asarray(X[i], dtype=dtype)
+        return X
 
     def _check_outputs(self, Y, multi=None):
         # return either a single array or list of arrays depending on
         # single/multi output
-        return (
-            Y if multi or self.multi_output else
-            Y[0] if len(Y) else None)
-
-    def _check_batch_size(self, X):
-        # check that there's only one batch size
-        batch_sizes = [len(x) for x in X]
-        if len(set(batch_sizes)) != 1:
-            raise ValueError(
-                'Expected a single batch size. Got {}.'.format(batch_sizes))
-        return self.batch_size
+        multi = self.multi_output if multi is None else multi
+        return Y if multi else Y[0] if len(Y) else None
 
     ##############
     # Info
@@ -125,16 +205,15 @@ class Model:
 
     @property
     def input_dtypes(self):
-        return [d['dtype'].__name__ for d in self.input_details]
+        return [d['dtype'] for d in self.input_details]
 
     @property
     def output_dtypes(self):
-        return [d['dtype'].__name__ for d in self.output_details]
+        return [d['dtype'] for d in self.output_details]
 
     @property
     def dtype(self):
-        dtypes = set(self.input_dtypes + self.output_dtypes)
-        return next(iter(dtypes), None)
+        return next(iter(self.input_dtypes + self.output_dtypes), None)
 
     # shapes
 
@@ -158,17 +237,10 @@ class Model:
         shape = self.output_shapes
         return shape[0] if len(shape) == 1 else shape
 
-
-    _batch_size = None
     @property
     def batch_size(self):
-        if self._batch_size is None:
-            self._batch_size = next((x[0] for x in self.input_shapes), None)
-        return self._batch_size
-
-    @batch_size.setter
-    def batch_size(self, value):
-        self._batch_size = value
+        shapes = self.input_shapes
+        return shapes[0][0] if shapes else None
 
     # print
 
