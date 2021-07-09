@@ -3,7 +3,7 @@ import setuptools
 
 USERNAME = 'beasteers'
 NAME = 'tflit'
-VERSION = '0.1.0'
+VERSION = '0.1.2'
 
 
 from tflit import tflite_install
@@ -11,7 +11,7 @@ if not (len(sys.argv) > 1 and sys.argv[1] == 'sdist'):
     # from importlib.machinery import SourceFileLoader
     # version = SourceFileLoader('tflit.tflite_install',
     #                            'tflit/tflite_install.py').load_module()
-    tflite_install.check_install(verbose=True)
+    tflite_install.check_install(verbose=True, upgrade=True)
 
 setuptools.setup(
     name=NAME,
